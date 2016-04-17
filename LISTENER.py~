@@ -1,0 +1,24 @@
+import DAlib, DPlib, GDlib
+
+DAlib.getDATA_HASHTAG(['ASU','escort','ASUlife'], 60)
+
+"""
+#filename = '../DATA/raw_tweets_1452196896.72.json'
+#filename = '../DATA/raw_tweets_1452198484.65.json'
+#filename = '../DATA/raw_tweets_1452201184.62.json'
+filename = '../DATA/raw_tweets_1452787775.7.json'
+
+
+lDATA = DPlib.getDATA_TEXT_SPACE(filename)
+
+print lDATA
+
+#lDATA = lDATA + [('BLAHHHHHHHHHH',('Juneau', (58.3, -134.41)))] 
+
+for item in lDATA:
+    print lDATA
+
+lat, lon, txt, loc =  GDlib.loadDATA(lDATA)
+
+GDlib.getIMAGES(lat, lon, txt, loc)
+"""

@@ -1,0 +1,104 @@
+import time, os, csv
+from tweepy import Stream
+from tweepy import OAuthHandler, API
+from tweepy.streaming import StreamListener
+
+
+consumer_key = 'BsxgcunOgSzIhC7tW0PJAaPiZ'
+consumer_secret = 'fLVQr4W1K4Xbefhi5WvBfDAxKfjy3KWB1HtlLyO5hHHnY0G72z'
+access_token_key = '2999566647-xNhCyfimFpQzJ7kHpIHXfqsdOPXAXkdVwpMKDbC'
+access_token_secret = 'GE6KNHen7AOv36BnhydntqhnPQMe4alQZTxiG3QErwZc1'
+
+ 
+ 
+start_time = time.time() #grabs the system time
+keyword_list = ['diy'] #track list
+
+#Listener Class Override
+class listener(StreamListener):
+ 
+    def __init__(self, start_time, time_limit=60):
+ 
+        self.time = start_time
+        self.limit = time_limit
+ 
+    def on_data(self, data):
+ 
+        while (time.time() - self.time) < self.limit:
+ 
+            try:
+ 
+                saveFile = open('../DATA/raw_tweets_' + str(start_time) + '.json', 'a')
+                saveFile.write(data)
+                #saveFile.write('\n')
+                saveFile.close()
+
+                return True
+ 
+ 
+            except BaseException, e:
+                print 'failed ondata,', str(e)
+                time.sleep(5)
+                pass
+ 
+        exit()
+ 
+    def on_error(self, status):
+ 
+        print statuses
+
+def getDATA_HASHTAG(keyword_list, time_mins):
+
+    auth = OAuthHandler(consumer_key, consumer_secret) #OAuth object
+    auth.set_access_token(access_token_key, access_token_secret)
+ 
+ 
+    twitterStream = Stream(auth, listener(start_time, time_limit=time_mins*60)) #initialize Stream object with a time out limit
+    twitterStream.filter(track=keyword_list, languages=['en'])  #call the filter method to run the Stream Object
+
+
+def getDATA_USER(screen_name):
+    #Twitter only allows access to a users most recent 3240 tweets with this method
+    
+    #authorize twitter, initialize tweepy
+    auth = OAuthHandler(consumer_key, consumer_secret)
+    auth.set_access_token(access_token_key, access_token_secret)
+    api = API(auth)
+    
+    #initialize a list to hold all the tweepy Tweets
+    alltweets = []
+    
+    #make initial request for most recent tweets (200 is the maximum allowed count)
+    new_tweets = api.user_timeline(screen_name = screen_name,count=200)
+    
+    #save most recent tweets
+    alltweets.extend(new_tweets)
+    
+    #save the id of the oldest tweet less one
+    oldest = alltweets[-1].id - 1
+    
+    #keep grabbing tweets until there are no tweets left to grab
+    while len(new_tweets) > 0:
+        print "getting tweets before %s" % (oldest)
+
+        #all subsiquent requests use the max_id param to prevent duplicates
+        new_tweets = api.user_timeline(screen_name = screen_name,count=200,max_id=oldest)
+
+        #save most recent tweets
+        alltweets.extend(new_tweets)
+
+        #update the id of the oldest tweet less one
+        oldest = alltweets[-1].id - 1
+
+        print "...%s tweets downloaded so far" % (len(alltweets))
+
+    #transform the tweepy tweets into a 2D array that will populate the csv
+    outtweets = [[tweet.id_str, tweet.created_at, tweet.text.encode("utf-8"), tweet.place] for tweet in alltweets]
+
+    #write the csv
+    with open('%s_tweets.csv' % screen_name, 'wb') as f:
+        writer = csv.writer(f)
+        writer.writerow(["id","created_at","text","place"])
+        writer.writerows(outtweets)
+
+    pass
